@@ -1,7 +1,15 @@
+
+#ifdef ARDUINO_attiny
 static const byte NW_pin = 3;
 static const byte NE_pin = 4;
 static const byte SE_pin = 1;
 static const byte SW_pin = 0;
+#else
+static const byte NW_pin = 5;
+static const byte NE_pin = 6;
+static const byte SE_pin = 10;
+static const byte SW_pin = 11;
+#endif
 
 void setup()
 {
