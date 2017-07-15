@@ -11,6 +11,33 @@ static const byte SE_pin = 10;
 static const byte SW_pin = 11;
 #endif
 
+static const byte MAX_STEPS=11;
+static const unsigned long pattern[][MAX_STEPS] =
+{
+#if 1
+  { 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000},
+  { 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF},
+  { 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000},
+  { 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF},
+  { 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000},
+  { 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF},
+
+#else
+  { 0xff000000, 0xffff0000, 0x00ffff00, 0x0000ffff, 0x000000ff, 0},
+  { 0xff000000, 0xffff0000, 0x00ffff00, 0x0000ffff, 0x000000ff, 0},
+  { 0xff000000, 0xffff0000, 0x00ffff00, 0x0000ffff, 0x000000ff, 0},
+  { 0, 0x1010, 0x1010, 0x2020, 0x2020, 0x4040, 0x4040, 0x8080, 0x8080, 0xffff, 0xffff },
+  { 0, 0x1010, 0x1010, 0x2020, 0x2020, 0x4040, 0x4040, 0x8080, 0x8080, 0xffff, 0xffff },
+  { 0, 0x1010, 0x1010, 0x2020, 0x2020, 0x4040, 0x4040, 0x8080, 0x8080, 0xffff, 0xffff },
+  { 0, 0x10100000, 0x10100000, 0x20200000, 0x20200000, 0x40400000, 0x40400000, 0x80800000, 0x80800000, 0xffff0000, 0xffff0000 },
+  { 0, 0x10100000, 0x10100000, 0x20200000, 0x20200000, 0x40400000, 0x40400000, 0x80800000, 0x80800000, 0xffff0000, 0xffff0000 },
+  { 0, 0x10100000, 0x10100000, 0x20200000, 0x20200000, 0x40400000, 0x40400000, 0x80800000, 0x80800000, 0xffff0000, 0xffff0000 },
+#endif
+};
+static const byte NUM_PATTERNS = sizeof(pattern) / sizeof(pattern[0]);
+
+static byte current = 0, step = 0;
+
 void setup()
 {
   pinMode(NW_pin, OUTPUT);
@@ -85,7 +112,22 @@ void fadeDown(byte pin, byte from, byte to, unsigned long pauseMillis)
   }
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
 
+void loop() {
+  const byte *b = reinterpret_cast<byte const *>(&pattern[current][step]);
+  analogWrite(NW_pin, b[0]);
+  analogWrite(NE_pin, b[1]);
+  analogWrite(SE_pin, b[2]);
+  analogWrite(SW_pin, b[3]);
+  b+=4;
+  ++step;
+  if(step==MAX_STEPS)
+  {
+    step=0;
+    ++current;
+    if (current == NUM_PATTERNS)
+      current = 0;
+  }
+  else
+    delay(50);
 }
