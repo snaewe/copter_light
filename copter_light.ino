@@ -1,42 +1,23 @@
-
-#ifdef ARDUINO_attiny
+#ifdef __AVR_ATtiny85__
 static const byte NW_pin = 3;
 static const byte NE_pin = 4;
 static const byte SE_pin = 1;
 static const byte SW_pin = 0;
+static const byte RC_pin = 2;
 #else
 static const byte NW_pin = 5;
 static const byte NE_pin = 6;
 static const byte SE_pin = 10;
 static const byte SW_pin = 11;
+static const byte RC_pin = 7;
 #endif
 
-static const byte MAX_STEPS=11;
-static const unsigned long pattern[][MAX_STEPS] =
-{
-#if 1
-  { 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000},
-  { 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF},
-  { 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000},
-  { 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF},
-  { 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000},
-  { 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF},
+#define MINPULSE 993
+#define MAXPULSE 1987
+#define MODES 3        //Anzahl der Modi
+#define FLUCTUATION 8  //Pulsstreuung bzw. Pulsschwankung
 
-#else
-  { 0xff000000, 0xffff0000, 0x00ffff00, 0x0000ffff, 0x000000ff, 0},
-  { 0xff000000, 0xffff0000, 0x00ffff00, 0x0000ffff, 0x000000ff, 0},
-  { 0xff000000, 0xffff0000, 0x00ffff00, 0x0000ffff, 0x000000ff, 0},
-  { 0, 0x1010, 0x1010, 0x2020, 0x2020, 0x4040, 0x4040, 0x8080, 0x8080, 0xffff, 0xffff },
-  { 0, 0x1010, 0x1010, 0x2020, 0x2020, 0x4040, 0x4040, 0x8080, 0x8080, 0xffff, 0xffff },
-  { 0, 0x1010, 0x1010, 0x2020, 0x2020, 0x4040, 0x4040, 0x8080, 0x8080, 0xffff, 0xffff },
-  { 0, 0x10100000, 0x10100000, 0x20200000, 0x20200000, 0x40400000, 0x40400000, 0x80800000, 0x80800000, 0xffff0000, 0xffff0000 },
-  { 0, 0x10100000, 0x10100000, 0x20200000, 0x20200000, 0x40400000, 0x40400000, 0x80800000, 0x80800000, 0xffff0000, 0xffff0000 },
-  { 0, 0x10100000, 0x10100000, 0x20200000, 0x20200000, 0x40400000, 0x40400000, 0x80800000, 0x80800000, 0xffff0000, 0xffff0000 },
-#endif
-};
-static const byte NUM_PATTERNS = sizeof(pattern) / sizeof(pattern[0]);
-
-static byte current = 0, step = 0;
+unsigned int maxPulse=MINPULSE, minPulse=MAXPULSE;
 
 void setup()
 {
@@ -44,6 +25,7 @@ void setup()
   pinMode(NE_pin, OUTPUT);
   pinMode(SE_pin, OUTPUT);
   pinMode(SW_pin, OUTPUT);
+  pinMode(RC_pin, INPUT);
 
   test_all();
 }
@@ -51,17 +33,17 @@ void setup()
 void test_all()
 {
   blink_all();
-  fade_all();
+  //fade_all();
 }
 
 void blink_all()
 {
   blink(NW_pin, 500, 200);
-  delay(500);
+  delay(10);
   blink(NE_pin, 500, 200);
-  delay(500);
+  delay(20);
   blink(SE_pin, 500, 200);
-  delay(500);
+  delay(20);
   blink(SW_pin, 500, 200);
 }
 
@@ -112,22 +94,71 @@ void fadeDown(byte pin, byte from, byte to, unsigned long pauseMillis)
   }
 }
 
-
-void loop() {
-  const byte *b = reinterpret_cast<byte const *>(&pattern[current][step]);
+void displayPattern(unsigned long pattern, unsigned long pauseMsec=20)
+{
+  const byte *b = reinterpret_cast<byte const *>(&pattern);
   analogWrite(NW_pin, b[0]);
   analogWrite(NE_pin, b[1]);
   analogWrite(SE_pin, b[2]);
   analogWrite(SW_pin, b[3]);
-  b+=4;
-  ++step;
-  if(step==MAX_STEPS)
+  delay(pauseMsec);
+}
+
+void police()
+{
+  displayPattern(0xFFFF0000);
+  displayPattern(0);
+  displayPattern(0xFFFF0000);
+  displayPattern(0);
+  displayPattern(0xFFFF0000);
+  displayPattern(0);
+  displayPattern(0xFFFF0000);
+  displayPattern(0);
+
+  displayPattern(0x0000FFFF);
+  displayPattern(0);
+  displayPattern(0x0000FFFF);
+  displayPattern(0);
+  displayPattern(0x0000FFFF);
+  displayPattern(0);
+  displayPattern(0x0000FFFF);
+  displayPattern(0);
+}
+
+byte getMode()
+{
+  static const float modeLength = (MAXPULSE - MINPULSE) / MODES;
+  unsigned int CH1 = pulseIn(RC_pin, HIGH);
+  unsigned int pulseLength = CH1;
+  byte lightMode=0;
+  if(CH1<minPulse)minPulse=CH1;
+  if(CH1>maxPulse)maxPulse=CH1;
+  if((maxPulse-minPulse)>FLUCTUATION)
   {
-    step=0;
-    ++current;
-    if (current == NUM_PATTERNS)
-      current = 0;
+    if ((pulseLength) >= MINPULSE)
+    {
+      pulseLength -= MINPULSE;
+    }
+    else
+    {
+      pulseLength = 0;
+    }
+
+    lightMode = round((pulseLength) / modeLength);
+    if (lightMode > MODES) lightMode = MODES;
+    minPulse=CH1;
+    maxPulse=CH1;
   }
+  return lightMode;
+}
+
+void loop()
+{
+  byte mode = getMode();
+  if (mode==0)
+    police();
+  else if (mode==1) 
+    blink_all();
   else
-    delay(50);
+    fade_all();
 }
