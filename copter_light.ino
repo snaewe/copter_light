@@ -108,14 +108,18 @@ void fadeDown(byte pin, byte from, byte to, unsigned long pauseMillis)
   }
 }
 
-
-void loop() {
-  long lVal = pgm_read_dword(&pattern[current][step]);
+void displayPattern(long lVal)
+{
   byte const *b = reinterpret_cast<byte const *>(&lVal);
   analogWrite(NW_pin, b[0]);
   analogWrite(NE_pin, b[1]);
   analogWrite(SE_pin, b[2]);
   analogWrite(SW_pin, b[3]);
+}
+
+void loop() {
+  long lVal = pgm_read_dword(&pattern[current][step]);
+  displayPattern(lVal);
 
   ++step;
   if(step==MAX_STEPS)
