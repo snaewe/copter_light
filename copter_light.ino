@@ -35,6 +35,30 @@ static const byte NUM_PATTERNS = sizeof(pattern) / sizeof(pattern[0]);
 
 static byte current = 0, step = 0;
 
+#ifdef __AVR_ATtiny85__
+void setup_timers()
+{
+  // Configure counter/timer0 for fast PWM on PB0 and PB1
+  TCCR0A = 3<<COM0A0 | 3<<COM0B0 | 3<<WGM00;
+  TCCR0B = 0<<WGM02 | 3<<CS00; // Optional; already set
+  // Configure counter/timer1 for fast PWM on PB4
+  TCCR1 = 1<<CTC1 | 1<<PWM1A | 3<<COM1A0 | 7<<CS10;
+  GTCCR = 1<<PWM1B | 3<<COM1B0;
+  // Interrupts on OC1A match and overflow
+  TIMSK = TIMSK | 1<<OCIE1A | 1<<TOIE1;
+}
+
+ISR(TIMER1_COMPA_vect) {
+  if (!bitRead(TIFR,TOV1)) bitSet(PORTB, NW_pin);
+}
+
+ISR(TIMER1_OVF_vect) {
+  bitClear(PORTB, NW_pin);
+}
+#else
+void setup_timers(){}
+#endif
+
 void setup()
 {
   pinMode(NW_pin, OUTPUT);
@@ -43,6 +67,7 @@ void setup()
   pinMode(SW_pin, OUTPUT);
 
   test_all();
+  setup_timers();
 }
 
 void test_all()
@@ -108,17 +133,24 @@ void fadeDown(byte pin, byte from, byte to, unsigned long pauseMillis)
   }
 }
 
-void displayPattern(long lVal)
+void displayPattern(unsigned long lVal)
 {
   byte const *b = reinterpret_cast<byte const *>(&lVal);
+#ifdef __AVR_ATtiny85__
+    OCR0A = 255-b[0];
+    OCR0B = 255-b[1];
+    OCR1A = 256-b[2];  // Yes, 256 is correct!
+    OCR1B = 255-b[3];
+#else
   analogWrite(NW_pin, b[0]);
   analogWrite(NE_pin, b[1]);
   analogWrite(SE_pin, b[2]);
   analogWrite(SW_pin, b[3]);
+#endif
 }
 
 void loop() {
-  long lVal = pgm_read_dword(&pattern[current][step]);
+  unsigned long lVal = pgm_read_dword(&pattern[current][step]);
   displayPattern(lVal);
 
   ++step;
