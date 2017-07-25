@@ -1,5 +1,5 @@
 
-#ifdef ARDUINO_attiny
+#ifdef __AVR_ATtiny85__
 static const byte NW_pin = 3;
 static const byte NE_pin = 4;
 static const byte SE_pin = 1;
