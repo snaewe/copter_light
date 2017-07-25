@@ -51,18 +51,17 @@ void setup()
 void test_all()
 {
   blink_all();
-  fade_all();
 }
 
 void blink_all()
 {
-  blink(NW_pin, 500, 200);
-  delay(500);
-  blink(NE_pin, 500, 200);
-  delay(500);
-  blink(SE_pin, 500, 200);
-  delay(500);
-  blink(SW_pin, 500, 200);
+  blink(NW_pin, 200, 200);
+  delay(200);
+  blink(NE_pin, 200, 200);
+  delay(200);
+  blink(SE_pin, 200, 200);
+  delay(200);
+  blink(SW_pin, 200, 200);
 }
 
 void fade_all()
