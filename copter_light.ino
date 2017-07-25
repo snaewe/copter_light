@@ -1,3 +1,4 @@
+#include <avr/pgmspace.h>
 
 #ifdef __AVR_ATtiny85__
 static const byte NW_pin = 3;
@@ -12,17 +13,14 @@ static const byte SW_pin = 11;
 #endif
 
 static const byte MAX_STEPS=11;
-static const unsigned long pattern[][MAX_STEPS] =
+static const unsigned long pattern[][MAX_STEPS] PROGMEM =
 {
-#if 1
   { 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000},
   { 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF},
   { 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000},
   { 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF},
   { 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000, 0, 0xFFFF0000},
   { 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF, 0, 0x0000FFFF},
-
-#else
   { 0xff000000, 0xffff0000, 0x00ffff00, 0x0000ffff, 0x000000ff, 0},
   { 0xff000000, 0xffff0000, 0x00ffff00, 0x0000ffff, 0x000000ff, 0},
   { 0xff000000, 0xffff0000, 0x00ffff00, 0x0000ffff, 0x000000ff, 0},
@@ -32,7 +30,6 @@ static const unsigned long pattern[][MAX_STEPS] =
   { 0, 0x10100000, 0x10100000, 0x20200000, 0x20200000, 0x40400000, 0x40400000, 0x80800000, 0x80800000, 0xffff0000, 0xffff0000 },
   { 0, 0x10100000, 0x10100000, 0x20200000, 0x20200000, 0x40400000, 0x40400000, 0x80800000, 0x80800000, 0xffff0000, 0xffff0000 },
   { 0, 0x10100000, 0x10100000, 0x20200000, 0x20200000, 0x40400000, 0x40400000, 0x80800000, 0x80800000, 0xffff0000, 0xffff0000 },
-#endif
 };
 static const byte NUM_PATTERNS = sizeof(pattern) / sizeof(pattern[0]);
 
@@ -113,12 +110,13 @@ void fadeDown(byte pin, byte from, byte to, unsigned long pauseMillis)
 
 
 void loop() {
-  const byte *b = reinterpret_cast<byte const *>(&pattern[current][step]);
+  long lVal = pgm_read_dword(&pattern[current][step]);
+  byte const *b = reinterpret_cast<byte const *>(&lVal);
   analogWrite(NW_pin, b[0]);
   analogWrite(NE_pin, b[1]);
   analogWrite(SE_pin, b[2]);
   analogWrite(SW_pin, b[3]);
-  b+=4;
+
   ++step;
   if(step==MAX_STEPS)
   {
