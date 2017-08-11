@@ -12,6 +12,7 @@ static const byte SE_pin = 10;
 static const byte SW_pin = 11;
 #endif
 
+static const byte MAX_BRIGHT=255;
 static const byte MAX_STEPS=11;
 static const unsigned long pattern[][MAX_STEPS] PROGMEM =
 {
@@ -133,19 +134,21 @@ void fadeDown(byte pin, byte from, byte to, unsigned long pauseMillis)
   }
 }
 
+template <typename T> T clip(T val, T maxVal) { return (val>maxVal) ? maxVal : val;}
+
 void displayPattern(unsigned long lVal)
 {
   byte const *b = reinterpret_cast<byte const *>(&lVal);
 #ifdef __AVR_ATtiny85__
-    OCR0A = 255-b[0];
-    OCR0B = 255-b[1];
-    OCR1A = 256-b[2];  // Yes, 256 is correct!
-    OCR1B = 255-b[3];
+    OCR0A = 255-clip(b[0], MAX_BRIGHT);
+    OCR0B = 255-clip(b[1], MAX_BRIGHT);
+    OCR1A = 256-clip(b[2], MAX_BRIGHT);  // Yes, 256 is correct!
+    OCR1B = 255-clip(b[3], MAX_BRIGHT);
 #else
-  analogWrite(NW_pin, b[0]);
-  analogWrite(NE_pin, b[1]);
-  analogWrite(SE_pin, b[2]);
-  analogWrite(SW_pin, b[3]);
+  analogWrite(NW_pin, clip(b[0], MAX_BRIGHT));
+  analogWrite(NE_pin, clip(b[1], MAX_BRIGHT));
+  analogWrite(SE_pin, clip(b[2], MAX_BRIGHT));
+  analogWrite(SW_pin, clip(b[3], MAX_BRIGHT));
 #endif
 }
 
