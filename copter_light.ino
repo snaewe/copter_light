@@ -35,6 +35,7 @@ static const unsigned long pattern[][MAX_STEPS] PROGMEM =
 static const byte NUM_PATTERNS = sizeof(pattern) / sizeof(pattern[0]);
 
 static byte current = 0, step = 0;
+static unsigned long prevMillis = 0;
 
 #ifdef __AVR_ATtiny85__
 void setup_timers()
@@ -113,18 +114,23 @@ void displayPattern(unsigned long lVal)
 #endif
 }
 
-void loop() {
-  unsigned long lVal = pgm_read_dword(&pattern[current][step]);
-  displayPattern(lVal);
+static unsigned long stepTime = 30;
 
-  ++step;
-  if(step==MAX_STEPS)
+void loop() {
+
+  unsigned long currentMillis = millis();
+  if (currentMillis-prevMillis > stepTime)
   {
-    step=0;
-    ++current;
-    if (current == NUM_PATTERNS)
-      current = 0;
+    prevMillis = currentMillis;
+    unsigned long lVal = pgm_read_dword(&pattern[current][step]);
+    displayPattern(lVal);
+    ++step;
+    if(step==MAX_STEPS)
+    {
+      step=0;
+      ++current;
+      if (current == NUM_PATTERNS)
+        current = 0;
+    }
   }
-  else
-    delay(50);
 }
