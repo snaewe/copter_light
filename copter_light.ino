@@ -11,6 +11,7 @@ static const byte NE_pin = 6;
 static const byte SE_pin = 10;
 static const byte SW_pin = 11;
 #endif
+static const byte RC_pin = 2;
 
 static const byte MAX_BRIGHT=255;
 static const byte MAX_STEPS=11;
@@ -70,6 +71,10 @@ void setup()
 
   test_all();
   setup_timers();
+  setup_pwm_in(RC_pin);
+#ifndef __AVR_ATtiny85__
+  Serial.begin(115200);
+#endif
 }
 
 void test_all()
@@ -121,6 +126,9 @@ void loop() {
   unsigned long currentMillis = millis();
   if (currentMillis-prevMillis > stepTime)
   {
+#ifndef __AVR_ATtiny85__
+    Serial.println(read_pwm());
+#endif
     prevMillis = currentMillis;
     unsigned long lVal = pgm_read_dword(&pattern[current][step]);
     displayPattern(lVal);
