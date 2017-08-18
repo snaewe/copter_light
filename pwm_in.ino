@@ -39,6 +39,10 @@ void setup_pwm_in(int pin)
 
 int read_pwm()
 {
-  return pulse_time;
+  uint8_t oldSREG = SREG;
+  cli();  //disable interrupts to get a consistent value
+  int ret = pulse_time;
+  SREG = oldSREG;
+  return ret;
 }
 
