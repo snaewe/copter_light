@@ -1,14 +1,14 @@
 void fade_all()
 {
-  fadeUp(NW_pin, 0, 255, 50);
-  fadeUp(SW_pin, 0, 255, 50);
-  fadeUp(SE_pin, 0, 255, 50);
-  fadeUp(NE_pin, 0, 255, 50);
+  fadeUp(pin[NW], 0, 255, 50);
+  fadeUp(pin[SW], 0, 255, 50);
+  fadeUp(pin[SE], 0, 255, 50);
+  fadeUp(pin[NE], 0, 255, 50);
   delay(500);
-  fadeDown(NE_pin, 255, 0, 50);
-  fadeDown(SE_pin, 255, 0, 50);
-  fadeDown(SW_pin, 255, 0, 50);
-  fadeDown(NW_pin, 255, 0, 50);
+  fadeDown(pin[NE], 255, 0, 50);
+  fadeDown(pin[SE], 255, 0, 50);
+  fadeDown(pin[SW], 255, 0, 50);
+  fadeDown(pin[NW], 255, 0, 50);
 }
 
 void fadeUp(byte pin, byte from, byte to, unsigned long pauseMillis)
