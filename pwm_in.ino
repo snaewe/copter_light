@@ -46,19 +46,6 @@ int read_pwm()
   return ret;
 }
 
-inline long map(long x, long in_min, long in_max, long out_min, long out_max)
-{
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
-template <typename T> T limit(T x, T a, T b)
-{
-    return (x<a) ? a : (x>b) ? b : x;
-}
-
-#define MINPULSE 1000
-#define MAXPULSE 2040
-
 byte get_mode(unsigned int rotaryPulse, unsigned int numSteps)
 {
   return limit(map(rotaryPulse, MINPULSE, MAXPULSE, 0, numSteps), 0L, (long)numSteps-1);
