@@ -1,9 +1,9 @@
 #include <avr/pgmspace.h>
-#include <Fsm.h>
 
 #include "globals.hpp"
 #include "fsm.hpp"
 #include "light_pattern.hpp"
+#include "pwm_in.hpp"
 
 #ifdef SE
 #undef SE
@@ -103,6 +103,12 @@ void displayPattern(unsigned long lVal)
   analogWrite(pin[SE], clip(b[2], MAX_BRIGHT));
   analogWrite(pin[SW], clip(b[3], MAX_BRIGHT));
 #endif
+}
+
+
+byte get_mode(unsigned int rotaryPulse, unsigned int numSteps)
+{
+  return limit(map(rotaryPulse, MINPULSE, MAXPULSE, 0, numSteps), 0L, (long)numSteps-1);
 }
 
 void loop() {
