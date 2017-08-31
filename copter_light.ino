@@ -1,7 +1,7 @@
 #include <avr/pgmspace.h>
 
 #include "globals.hpp"
-#include "fsm.hpp"
+#include "state_machine.hpp"
 #include "light_pattern.hpp"
 #include "pwm_in.hpp"
 
